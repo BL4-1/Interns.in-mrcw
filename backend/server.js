@@ -5,11 +5,10 @@ require('dotenv').config(); // Loads environment variables from .env file
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg'); // PostgreSQL client
+const path = require('path'); // <-- ADD THIS LINE to handle file paths
 
 // 2. Setup App and Database Connection
 const app = express();
-// ▼▼▼ THIS IS THE FIX ▼▼▼
-// Use the port Render gives us, or 3000 if we're running locally
 const PORT = process.env.PORT || 3000; 
 
 const pool = new Pool({
@@ -19,7 +18,9 @@ const pool = new Pool({
 // 3. Middleware
 app.use(cors()); // Allow requests from our frontend
 app.use(express.json()); // Allow server to understand JSON data from requests
-app.use(express.static('public')); // Serve static files like HTML, CSS
+// ▼▼▼ THIS IS THE CORRECTED LINE ▼▼▼
+// It tells the server to go up one level ('../') to find the 'public' folder
+app.use(express.static(path.join(__dirname, '../public')));
 
 // 4. API Routes (The Server's Brain)
 
@@ -107,8 +108,6 @@ app.get('/api/users', async (req, res) => {
 
 
 // 5. Start the Server
-// ▼▼▼ AND THIS IS THE SECOND PART OF THE FIX ▼▼▼
 app.listen(PORT, () => {
-    // The console log is updated to be more accurate for a deployed environment
     console.log(`🚀 Server is running on port ${PORT}`);
 });
