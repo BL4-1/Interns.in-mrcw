@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interns.in - Find Internships with Great Company Culture</title>
+    
+    <!-- Favicon -->
+    <link rel="
+    icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' rx='8' fill='%230052FF'/%3E%3Cpath d='M17 33V19C17 16.7909 18.7909 15 21 15H27C29.2091 15 31 16.7909 31 19V33' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Crect x='21' y='25' width='6' height='8' rx='2' stroke='white' stroke-width='2.5'/%3E%3Cpath d='M24 19V29' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-blue: #0052FF;
+            --primary-blue-hover: #0048E0;
+            --bg-light: #F9FAFB;
+        }
+        html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-light); }
+        .loader {
+            border: 4px solid #d1d5db; border-top: 4px solid var(--primary-blue);
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1.2s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #intro-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-light); z-index: 100;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .intro-element {
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            opacity: 0; transform: translateY(20px);
+        }
+        .intro-element.visible { opacity: 1; transform: translateY(0); }
+        #auth-modal { transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
+        #auth-modal.hidden { visibility: hidden; opacity: 0; }
+        .auth-form-container { transform: translateX(0); transition: transform 0.4s ease-in-out; }
+        .auth-form-container.hidden { transform: translateX(-100%); position: absolute; }
+    </style>
+</head>
+<body>
+
+    <div id="intro-overlay">
+        <div class="text-center">
+            <div id="intro-logo" class="intro-element">
+                 <svg class="mx-auto" width="64" height="64" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="8" fill="#0052FF"/><path d="M17 33V19C17 16.7909 18.7909 15 21 15H27C29.2091 15 31 16.7909 31 19V33" stroke="white" stroke-width="2.5" stroke-linecap="round"/><rect x="21" y="25" width="6" height="8" rx="2" stroke="white" stroke-width="2.5"/><path d="M24 19V29" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+            </div>
+            <h1 id="intro-headline" class="intro-element text-4xl md:text-5xl font-extrabold text-gray-900 mt-6">Interns.in</h1>
+        </div>
+    </div>
+    
+    <!-- === AUTH MODAL === -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md relative overflow-hidden">
+            <!-- Close Button -->
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <div class="flex">
+                <!-- Signup Form -->
+                <div id="signup-form-container" class="auth-form-container w-full p-8 flex-shrink-0">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
+                    <p class="text-gray-600 mb-6">Start your journey with us.</p>
+                    <form id="signup-form">
+                        <div class="mb-4">
+                            <label for="signup-name" class="block text-gray-700 font-medium mb-2">Full Name</label>
+                            <input type="text" id="signup-name" class="w-full bg-gray-100 text-gray-800 border-2 border-transparent rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500" placeholder="Your Name" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="signup-email" class="block text-gray-700 font-medium mb-2">Email</label>
+                            <input type="email" id="signup-email" class="w-full bg-gray-100 text-gray-800 border-2 border-transparent rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500" placeholder="you@example.com" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="signup-password" class="block text-gray-700 font-medium mb-2">Password</label>
+                            <input type="password" id="signup-password" class="w-full bg-gray-100 text-gray-800 border-2 border-transparent rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500" placeholder="Min. 8 characters" required>
+                        </div>
+                        <button type="submit" id="signup-submit-btn" class="w-full font-bold py-3 px-4 rounded-lg text-white transition-colors duration-300 bg-[color:var(--primary-blue)] hover:bg-[color:var(--primary-blue-hover)]">Sign Up</button>
+                    </form>
+                    <p id="signup-error" class="text-red-500 text-sm mt-3 text-center"></p>
+                    <p class="text-center text-gray-600 mt-6">
+                        Already have an account? <a href="#" id="show-login-link" class="font-semibold text-blue-600 hover:underline">Log In</a>
+                    </p>
+                </div>
+                
+                <!-- Login Form -->
+                <div id="login-form-container" class="auth-form-container w-full p-8 flex-shrink-0 hidden">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Welcome Back!</h2>
+                    <p class="text-gray-600 mb-6">Log in to continue.</p>
+                    <form id="login-form">
+                        <div class="mb-4">
+                            <label for="login-email" class="block text-gray-700 font-medium mb-2">Email</label>
+                            <input type="email" id="login-email" class="w-full bg-gray-100 text-gray-800 border-2 border-transparent rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500" placeholder="you@example.com" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="login-password" class="block text-gray-700 font-medium mb-2">Password</label>
+                            <input type="password" id="login-password" class="w-full bg-gray-100 text-gray-800 border-2 border-transparent rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500" placeholder="Your Password" required>
+                        </div>
+                        <button type="submit" id="login-submit-btn" class="w-full font-bold py-3 px-4 rounded-lg text-white transition-colors duration-300 bg-[color:var(--primary-blue)] hover:bg-[color:var(--primary-blue-hover)]">Log In</button>
+                    </form>
+                    <p id="login-error" class="text-red-500 text-sm mt-3 text-center"></p>
+                    <p class="text-center text-gray-600 mt-6">
+                        Don't have an account? <a href="#" id="show-signup-link" class="font-semibold text-blue-600 hover:underline">Sign Up</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-content" class="opacity-0 transition-opacity duration-500">
+        <header class="w-full">
+             <nav class="container mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
+                <a href="#" class="flex items-center gap-2.5">
+                    <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="8" fill="#0052FF"/><path d="M17 33V19C17 16.7909 18.7909 15 21 15H27C29.2091 15 31 16.7909 31 19V33" stroke="white" stroke-width="2.5" stroke-linecap="round"/><rect x="21" y="25" width="6" height="8" rx="2" stroke="white" stroke-width="2.5"/><path d="M24 19V29" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+                    <span class="text-xl font-bold text-gray-900">Interns.in</span>
+                </a>
+                <div class="flex items-center gap-2">
+                    <!-- Stipend Insights Section -->
+                    <div class="relative group">
+                        <button id="stipendInsightsBtn" type="button" class="font-semibold py-2 px-4 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors text-sm">Stipend Insights</button>
+                        <div id="stipendDropdown" class="absolute right-0 mt-2 w-72 max-w-xs bg-white border border-gray-200 rounded-lg shadow-xl p-4 z-50 hidden">
+                            <label for="stipendRole" class="block text-gray-700 font-medium mb-2 text-sm">Enter a Role</label>
+                            <input type="text" id="stipendRole" class="w-full bg-white text-gray-800 border-2 border-gray-200 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:border-blue-500 text-sm" placeholder="e.g., Data Analyst">
+                            <button id="stipendSearchBtn" type="button" class="w-full font-semibold py-2 px-4 rounded-lg transition-colors duration-300 text-white" style="background-color: var(--primary-blue);">Show Average Stipend</button>
+                            <div id="stipend-result" class="mt-3 text-sm text-gray-700 font-medium break-words"></div>
+                        </div>
+                    </div>
+                    <!-- Auth Buttons -->
+                    <div id="user-actions" class="flex items-center gap-2">
+                        <button id="login-btn" type="button" class="font-semibold py-2 px-4 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors text-sm">Login</button>
+                        <button id="signup-btn" type="button" class="font-semibold py-2 px-4 rounded-lg text-white transition-colors text-sm bg-[color:var(--primary-blue)] hover:bg-[color:var(--primary-blue-hover)]">Sign Up</button>
+                    </div>
+                    <div id="user-session" class="hidden items-center gap-4">
+                        <span id="welcome-msg" class="font-semibold text-gray-700"></span>
+                        <button id="logout-btn" class="font-semibold py-2 px-4 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm">Logout</button>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <section class="container mx-auto px-4 sm:px-6 py-12 md:py-16 text-center">
+            <h1 data-aos="fade-up" class="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">Find Your Next Great Internship.</h1>
+            <p data-aos="fade-up" data-aos-delay="100" class="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10">Search for roles at companies in India known for a great student culture.</p>
+            
+            <div data-aos="fade-up" data-aos-delay="200" class="max-w-xl mx-auto p-2 bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl shadow-md">
+                <form id="search-form" class="flex items-center gap-2">
+                    <input type="text" id="skillInput" class="w-full bg-transparent border-none px-4 py-3 text-base focus:outline-none focus:ring-0" placeholder="e.g., 'React Developer' or 'Marketing'">
+                    <button id="searchButton" type="submit" class="font-bold py-3 px-6 rounded-lg text-white w-auto transition-colors bg-[color:var(--primary-blue)] hover:bg-[color:var(--primary-blue-hover)]">Search</button>
+                </form>
+            </div>
+        </section>
+
+        <main id="results-section" class="bg-white py-12">
+            <div class="container mx-auto px-4 sm:px-6">
+                <div id="status-container" class="text-center py-4">
+                    <div id="loading" class="loader mx-auto hidden"></div>
+                    <p id="error" class="text-red-500 font-medium hidden"></p>
+                </div>
+                
+                <div id="featured-internships">
+                    <h2 class="text-2xl font-bold text-center mb-8">Featured Internships</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                         <div class="featured-card" data-role="Software Engineering Intern" data-company="Microsoft" data-aos="fade-up">
+                            <div class="flex items-center gap-4 mb-3">
+                               <svg class="h-10 w-10" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.5 0.5H10.8235V10.8235H0.5V0.5Z" fill="#F25022"/><path d="M12.1765 0.5H22.5V10.8235H12.1765V0.5Z" fill="#7FBA00"/><path d="M0.5 12.1765H10.8235V22.5H0.5V12.1765Z" fill="#00A4EF"/><path d="M12.1765 12.1765H22.5V22.5H12.1765V12.1765Z" fill="#FFB900"/></svg>
+                                <div><h3 class="font-bold text-lg text-gray-900">Software Engineering Intern</h3><p class="font-medium text-gray-600">Microsoft</p></div>
+                            </div>
+                            <span class="inline-block bg-green-100 text-green-800 font-semibold py-1 px-2.5 rounded-full text-xs">✨ Good Culture</span>
+                        </div>
+                        <div class="featured-card" data-role="STEP Intern" data-company="Google" data-aos="fade-up" data-aos-delay="50">
+                             <div class="flex items-center gap-4 mb-3">
+                                <svg class="h-10 w-10" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.20455C17.64 8.56621 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4"/><path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853"/><path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59318 3.68182 9C3.68182 8.40682 3.78409 7.83 3.96409 7.29H0.957275V9.62182C0.347727 10.79 0 12.17 0 13.6364C0 15.1027 0.347727 16.4827 0.957275 17.6527L3.96409 15.3209V10.71Z" fill="#FBBC05" transform="translate(0 -4.5)"/><path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.43 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335"/></svg>
+                                <div><h3 class="font-bold text-lg text-gray-900">STEP Intern</h3><p class="font-medium text-gray-600">Google</p></div>
+                            </div>
+                            <span class="inline-block bg-green-100 text-green-800 font-semibold py-1 px-2.5 rounded-full text-xs">✨ Good Culture</span>
+                        </div>
+                        <div class="featured-card" data-role="Product Design Intern" data-company="Salesforce" data-aos="fade-up" data-aos-delay="100">
+                             <div class="flex items-center gap-4 mb-3">
+                                <svg class="h-12 w-12" viewBox="0 0 125 87" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M89.752 4.416c-7.296-5.024-17.472-3.872-23.616 2.912-4.128-4.704-9.824-7.808-16.192-8.352-10.4-1.024-19.648 4.736-23.776 13.44-5.024 10.976-1.568 24.32 8.352 33.472C50.24 60.128 62.504 69.536 62.504 69.536s12.256-9.408 27.936-23.488c9.92-9.152 13.376-22.496 8.352-33.472a26.044 26.044 0 00-10.048-8.168zM62.536 86.4S-1.56 52.32 24.584 22.016C41.768-1.536 78.472-4.48 97.416 16.64c20.192 22.496-13.056 41.696-13.056 41.696" fill="#00A1E0"/></svg>
+                                <div><h3 class="font-bold text-lg text-gray-900">Product Design Intern</h3><p class="font-medium text-gray-600">Salesforce</p></div>
+                            </div>
+                            <span class="inline-block bg-green-100 text-green-800 font-semibold py-1 px-2.5 rounded-full text-xs">✨ Good Culture</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="jobs-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </main>
+        
+        <section id="about" class="py-20 sm:py-24 bg-gray-50">
+            <div class="container mx-auto px-4 sm:px-6 text-center">
+                <img src="https://ui-avatars.com/api/?name=B+L&size=96&background=0052FF&color=fff&bold=true&rounded=true" alt="Creator Avatar" class="mx-auto mb-4" data-aos="zoom-in">
+                <h2 class="text-3xl font-bold mb-3" data-aos="fade-up">About & Contact</h2>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+                    "Finding the right internship is tough. I built this platform to be a simple, powerful tool to help my fellow students in India kickstart their careers. No fluff, just opportunities."
+                </p>
+                <p class="font-semibold text-gray-800 mt-4" data-aos="fade-up" data-aos-delay="150">- B. Laxmiprasanna</p>
+                <div class="mt-8" data-aos="fade-up" data-aos-delay="200">
+                    <a href="mailto:bandarulaxmiprasanna01@gmail.com"
+                       class="font-bold py-3 px-8 rounded-lg text-white transition-colors inline-block bg-[color:var(--primary-blue)] hover:bg-[color:var(--primary-blue-hover)]">
+                        Contact Me
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="bg-gray-900 text-white">
+            <div class="container mx-auto px-6 py-8 text-center text-gray-400">
+                <p>&copy; 2025 Interns.in — A Student Project</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- === UPDATED SCRIPT WITH ALL FEATURES === -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            AOS.init({ duration: 800, once: true, offset: 50 });
+
+            // --- Core Elements ---
+            const mainContent = document.getElementById('main-content');
+            const introOverlay = document.getElementById('intro-overlay');
+            const searchForm = document.getElementById('search-form');
+            const skillInput = document.getElementById('skillInput');
+            const searchButton = document.getElementById('searchButton');
+            const jobsContainer = document.getElementById('jobs-container');
+            const statusContainer = document.getElementById('status-container');
+            const loadingIndicator = document.getElementById('loading');
+            const errorDisplay = document.getElementById('error');
+            const featuredSection = document.getElementById('featured-internships');
+            
+            // --- Stipend Elements ---
+            const stipendBtn = document.getElementById('stipendInsightsBtn');
+            const stipendDropdown = document.getElementById('stipendDropdown');
+            const stipendRole = document.getElementById('stipendRole');
+            const stipendSearchBtn = document.getElementById('stipendSearchBtn');
+            const stipendResult = document.getElementById('stipend-result');
+
+            // --- Auth Elements ---
+            const authModal = document.getElementById('auth-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const loginBtn = document.getElementById('login-btn');
+            const signupBtn = document.getElementById('signup-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userActions = document.getElementById('user-actions');
+            const userSession = document.getElementById('user-session');
+            const welcomeMsg = document.getElementById('welcome-msg');
+            const loginFormContainer = document.getElementById('login-form-container');
+            const signupFormContainer = document.getElementById('signup-form-container');
+            const showLoginLink = document.getElementById('show-login-link');
+            const showSignupLink = document.getElementById('show-signup-link');
+            const signupForm = document.getElementById('signup-form');
+            const loginForm = document.getElementById('login-form');
+
+            // --- Intro Animation ---
+            if (!sessionStorage.getItem('hasVisited')) {
+                const introLogo = document.getElementById('intro-logo');
+                const introHeadline = document.getElementById('intro-headline');
+                setTimeout(() => introLogo.classList.add('visible'), 200);
+                setTimeout(() => introHeadline.classList.add('visible'), 400);
+                setTimeout(() => {
+                    introOverlay.style.opacity = '0';
+                    introOverlay.style.pointerEvents = 'none';
+                    mainContent.style.opacity = '1';
+                    sessionStorage.setItem('hasVisited', 'true');
+                }, 2000);
+            } else {
+                introOverlay.style.display = 'none';
+                mainContent.style.opacity = '1';
+            }
+
+            // --- Stipend Insights Logic ---
+            const stipendData = [
+                { role: "web developer", min: 8000, max: 15000 }, { role: "marketing", min: 7000, max: 12000 },
+                { role: "data analyst", min: 10000, max: 18000 }, { role: "designer", min: 7000, max: 13000 },
+                { role: "software engineer", min: 12000, max: 25000 }, { role: "content writer", min: 5000, max: 10000 },
+                { role: "java developer", min: 10000, max: 20000 }, { role: "python developer", min: 10000, max: 22000 },
+            ];
+
+            stipendBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                stipendDropdown.classList.toggle('hidden');
+            });
+            stipendSearchBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const role = stipendRole.value;
+                if (!role) { stipendResult.textContent = "Please enter a role."; return; }
+                const data = stipendData.find(s => s.role.includes(role.trim().toLowerCase()));
+                if (data) {
+                    stipendResult.innerHTML = `<span class="capitalize font-bold" style="color: var(--primary-blue);">${data.role}:</span><br>Est. ₹${data.min.toLocaleString()} - ₹${data.max.toLocaleString()}/month`;
+                } else {
+                    stipendResult.textContent = "No data for this role. Try a broader term.";
+                }
+            });
+            document.addEventListener('click', (e) => {
+                if (!stipendDropdown.contains(e.target) && !stipendBtn.contains(e.target)) {
+                    stipendDropdown.classList.add('hidden');
+                }
+            });
+            
+            // --- Auth Modal Logic ---
+            const openModal = (showLogin = false) => {
+                authModal.classList.remove('hidden');
+                if (showLogin) {
+                    loginFormContainer.classList.remove('hidden');
+                    signupFormContainer.classList.add('hidden');
+                } else {
+                    signupFormContainer.classList.remove('hidden');
+                    loginFormContainer.classList.add('hidden');
+                }
+            };
+            const closeModal = () => authModal.classList.add('hidden');
+
+            loginBtn.addEventListener('click', () => openModal(true));
+            signupBtn.addEventListener('click', () => openModal(false));
+            closeModalBtn.addEventListener('click', closeModal);
+            showLoginLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                signupFormContainer.style.transform = 'translateX(-100%)';
+                loginFormContainer.classList.remove('hidden');
+                setTimeout(() => {
+                    signupFormContainer.classList.add('hidden');
+                    signupFormContainer.style.transform = 'translateX(0)';
+                }, 400);
+            });
+            showSignupLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                loginFormContainer.style.transform = 'translateX(100%)';
+                signupFormContainer.classList.remove('hidden');
+                setTimeout(() => {
+                    loginFormContainer.classList.add('hidden');
+                    loginFormContainer.style.transform = 'translateX(0)';
+                }, 400);
+            });
+            
+            // --- User Session Management ---
+            const updateUIForLoggedInUser = (user) => {
+                userActions.classList.add('hidden');
+                userSession.classList.remove('hidden');
+                userSession.classList.add('flex');
+                welcomeMsg.textContent = `Welcome, ${user.name}!`;
+            };
+
+            const updateUIForLoggedOutUser = () => {
+                userActions.classList.remove('hidden');
+                userSession.classList.add('hidden');
+                userSession.classList.remove('flex');
+                welcomeMsg.textContent = '';
+                localStorage.removeItem('user');
+            };
+
+            const savedUser = JSON.parse(localStorage.getItem('user'));
+            if (savedUser) {
+                updateUIForLoggedInUser(savedUser);
+            }
+
+            logoutBtn.addEventListener('click', () => {
+                updateUIForLoggedOutUser();
+                console.log("User logged out.");
+            });
+
+            // --- Signup Form Submission (Simulated) ---
+            signupForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                // ... (form validation and simulated backend logic)
+                const name = document.getElementById('signup-name').value;
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                const errorEl = document.getElementById('signup-error');
+                const submitBtn = document.getElementById('signup-submit-btn');
+                
+                errorEl.textContent = '';
+                if (password.length < 8) {
+                    errorEl.textContent = 'Password must be at least 8 characters long.';
+                    return;
+                }
+                
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Signing Up...';
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                const newUser = { name, email };
+                localStorage.setItem('user', JSON.stringify(newUser));
+                updateUIForLoggedInUser(newUser);
+                closeModal();
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sign Up';
+            });
+
+            // --- Login Form Submission (Simulated) ---
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                // ... (form validation and simulated backend logic)
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                const errorEl = document.getElementById('login-error');
+                const submitBtn = document.getElementById('login-submit-btn');
+
+                errorEl.textContent = '';
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Logging In...';
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                if (email === "user@example.com" && password === "password123") {
+                    const loggedInUser = { name: "Test User", email };
+                    localStorage.setItem('user', JSON.stringify(loggedInUser));
+                    updateUIForLoggedInUser(loggedInUser);
+                    closeModal();
+                } else {
+                    errorEl.textContent = 'Invalid email or password.';
+                }
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Log In';
+            });
+            
+            // --- Core Internship Search Logic ---
+            if (featuredSection) {
+                featuredSection.addEventListener('click', (e) => {
+                    const card = e.target.closest('.featured-card');
+                    if (!card) return;
+                    
+                    const role = card.dataset.role;
+                    const company = card.dataset.company;
+                    skillInput.value = `${role} at ${company}`;
+                    searchForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                });
+
+                document.querySelectorAll('.featured-card').forEach(card => {
+                    card.classList.add(
+                        'bg-white', 'rounded-xl', 'p-5', 'border', 'border-gray-200',
+                        'hover:border-blue-500', 'hover:shadow-lg', 'transition-all', 'duration-300', 'cursor-pointer'
+                    );
+                });
+            }
+
+            let isFetching = false;
+            const fetchJobs = async (query) => {
+                const apiKey = '3056ab4ademsha21f2deb4772313p169248jsnbf1f56cd543b';
+                const cacheKey = `jsearch_cache_${query.toLowerCase().trim()}`;
+                
+                if (isFetching) return;
+                isFetching = true;
+
+                jobsContainer.innerHTML = '';
+                if(featuredSection) featuredSection.style.display = 'none';
+                statusContainer.style.display = 'block';
+                loadingIndicator.style.display = 'block';
+                errorDisplay.style.display = 'none';
+                searchButton.disabled = true;
+                searchButton.textContent = 'Searching...';
+
+                const cachedData = sessionStorage.getItem(cacheKey);
+                if (cachedData) {
+                    const result = JSON.parse(cachedData);
+                    displayJobs(result.data);
+                    statusContainer.style.display = 'none';
+                    isFetching = false;
+                    loadingIndicator.style.display = 'none';
+                    searchButton.disabled = false;
+                    searchButton.textContent = 'Search';
+                    return;
+                }
+                
+                const url = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query)}&page=1&num_pages=30&country=IN`;
+                const options = { method: 'GET', headers: { 'x-rapidapi-key': apiKey, 'x-rapidapi-host': 'jsearch.p.rapidapi.com' } };
+
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) throw new Error(`API returned status: ${response.status}`);
+                    const result = await response.json();
+                    
+                    if (result.data && result.data.length > 0) {
+                        sessionStorage.setItem(cacheKey, JSON.stringify(result));
+                        displayJobs(result.data);
+                        statusContainer.style.display = 'none';
+                    } else {
+                        errorDisplay.textContent = `No internships found for "${query}". Try another search.`;
+                        errorDisplay.style.display = 'block';
+                    }
+                } catch (err) {
+                    console.error("Fetch error:", err);
+                    errorDisplay.textContent = 'Could not fetch internships. The server may be busy.';
+                    errorDisplay.style.display = 'block';
+                } finally {
+                    isFetching = false;
+                    loadingIndicator.style.display = 'none';
+                    searchButton.disabled = false;
+                    searchButton.textContent = 'Search';
+                }
+            };
+
+            const displayJobs = (jobs) => {
+                jobsContainer.innerHTML = ''; 
+                jobs.forEach((job, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-xl p-5 border border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all duration-300 flex flex-col';
+                    card.setAttribute('data-aos', 'fade-up');
+                    card.setAttribute('data-aos-delay', (index % 3) * 50);
+
+                    const jobTitle = job.job_title || 'No Title Provided';
+                    const employerName = job.employer_name || 'Confidential';
+                    const applyLink = job.job_apply_link || '#';
+                    const employerLogo = job.employer_logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(employerName)}&background=EBF4FF&color=0052FF&bold=true`;
+                    
+                    let tagsHTML = '';
+                    if (job.job_is_remote) tagsHTML += `<span class="tag">🏠 Remote</span>`;
+                    else if(job.job_city) tagsHTML += `<span class="tag">📍 ${job.job_city}</span>`;
+                    
+                    if (job.job_employment_type) tagsHTML += `<span class="tag">💼 ${job.job_employment_type.toLowerCase().replace('_',' ')}</span>`;
+
+                    card.innerHTML = `
+                        <div class="flex items-start mb-4">
+                            <img src="${employerLogo}" alt="${employerName} logo" class="w-14 h-14 rounded-lg mr-4 bg-gray-50 object-contain p-1" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(employerName)}&background=EBF4FF&color=0052FF&bold=true';">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900 leading-tight">${jobTitle}</h3>
+                                <p class="text-gray-600 font-medium">${employerName}</p>
+                            </div>
+                        </div>
+                        <div class="flex-grow flex flex-wrap gap-2 mb-4">
+                            ${tagsHTML.replace(/<span class="tag">/g, '<span class="inline-block bg-blue-50 text-blue-700 font-semibold py-1 px-2.5 rounded-full text-xs">')}
+                        </div>
+                        <a href="${applyLink}" target="_blank" rel="noopener noreferrer" class="block w-full text-center font-bold py-3 px-5 rounded-lg transition-colors duration-300 text-white mt-auto bg-[color:var(--primary-blue)] hover:bg-[color:var(--primary-blue-hover)]">
+                            Apply Now
+                        </a>
+                    `;
+                    jobsContainer.appendChild(card);
+                });
+                AOS.refresh();
+            };
+            
+            searchForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const query = skillInput.value.trim();
+                if (query) fetchJobs(query);
+            });
+        });
+    </script>
+</body>
+</html>
