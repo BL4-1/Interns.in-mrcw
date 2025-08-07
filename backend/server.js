@@ -8,7 +8,9 @@ const { Pool } = require('pg'); // PostgreSQL client
 
 // 2. Setup App and Database Connection
 const app = express();
-const PORT = 3000; // The port our server will run on
+// ▼▼▼ THIS IS THE FIX ▼▼▼
+// Use the port Render gives us, or 3000 if we're running locally
+const PORT = process.env.PORT || 3000; 
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -105,9 +107,8 @@ app.get('/api/users', async (req, res) => {
 
 
 // 5. Start the Server
+// ▼▼▼ AND THIS IS THE SECOND PART OF THE FIX ▼▼▼
 app.listen(PORT, () => {
-    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    // The console log is updated to be more accurate for a deployed environment
+    console.log(`🚀 Server is running on port ${PORT}`);
 });
-
-
-
