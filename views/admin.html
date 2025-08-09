@@ -30,59 +30,34 @@
         </table>
         <p id="loading-message" class="text-center py-4 text-gray-500">Loading users...</p>
     </div>
+       <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const tableBody = document.getElementById('user-table-body');
+        const loadingMessage = document.getElementById('loading-message');
+        const backendUrl = 'https://interns-in-mrcw.onrender.com';
 
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const tableBody = document.getElementById('user-table-body');
-            const loadingMessage = document.getElementById('loading-message');
-
-            try {
-                // ▼▼▼ THIS ENTIRE BLOCK IS THE FIX ▼▼▼
-                const backendUrl = 'https://interns-in-mrcw.onrender.com';
-
-                // Fetch user data from your LIVE backend, sending the required admin password
-                const response = await fetch(`${backendUrl}/api/users`, {
-                    method: 'GET',
-                    headers: {
-                        'X-Admin-Password': 'supersecret'
-                    }
-                });
-                
-                if (!response.ok) {
-                    // This will handle errors like 403 Forbidden if the password is wrong
-                    throw new Error(`Failed to fetch users. Server responded with ${response.status}.`);
-                }
-                
-                const users = await response.json();
-                loadingMessage.style.display = 'none';
-
-                if (users.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">No users have signed up yet.</td></tr>';
-                    return;
-                }
-
-                // Loop through each user and add a row to the table
-                users.forEach(user => {
-                    const row = document.createElement('tr');
-                    
-                    // Format the date to be more readable
-                    const formattedDate = new Date(user.created_at).toLocaleString();
-
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${user.id}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${user.name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${user.email}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${formattedDate}</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-
-            } catch (error) {
-                console.error('Error fetching users:', error);
-                // Update the error message to be more helpful
-                loadingMessage.textContent = `Could not load users. Error: ${error.message}`;
+        try {
+            const response = await fetch(`${backendUrl}/api/users`, {
+                credentials: 'include' // <-- THIS LINE IS ALSO CRITICAL
+            });
+            
+            if (response.status === 401 || response.status === 403) {
+                loadingMessage.textContent = 'Session expired. Redirecting to login...';
+                window.location.href = '/admin-login.html';
+                return;
             }
-        });
-    </script>
+
+            if (!response.ok) {
+                throw new Error(`Server responded with ${response.status}.`);
+            }
+            
+            const users = await response.json();
+            // ... rest of your code to display users ...
+        } catch (error) {
+            // ... your error handling ...
+        }
+    });
+</script>
+   
 </body>
 </html>

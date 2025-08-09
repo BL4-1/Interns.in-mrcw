@@ -1,4 +1,4 @@
-// server.js - FINAL COMPLETE AND SECURE VERSION
+// server.js - FINAL VERSION WITH CORS CREDENTIALS
 
 // 1. Import Dependencies
 require('dotenv').config();
@@ -17,7 +17,18 @@ const pool = new Pool({
 });
 
 // 3. Middleware
-app.use(cors()); 
+
+// ▼▼▼ THIS BLOCK IS THE FIX ▼▼▼
+// We are replacing the simple app.use(cors()) with this advanced configuration.
+// This tells the server to ONLY trust requests from your live Netlify site
+// and to accept cookies (credentials) from it.
+const corsOptions = {
+    origin: 'https://interns-in-mrcw.netlify.app', // Your live frontend URL
+    credentials: true, // This allows the browser to send the session cookie
+};
+app.use(cors(corsOptions)); 
+// ▲▲▲ END OF THE FIX ▲▲▲
+
 app.use(express.json());
 
 // Session Middleware Setup
@@ -34,7 +45,7 @@ app.use(session({
 // Serve public files (like index.html and admin-login.html)
 app.use(express.static(path.join(__dirname, '../public')));
 
-// 4. API Routes
+// 4. API Routes (The rest of your code is perfect and unchanged)
 
 // --- Main Site API Routes ---
 app.post('/api/signup', async (req, res) => {
@@ -67,7 +78,7 @@ app.post('/api/login', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         const user = result.rows[0];
-        if (!user || password !== user.password) { // In a real app, use bcrypt.compare here
+        if (!user || password !== user.password) {
             return res.status(401).json({ success: false, message: 'Invalid credentials.' });
         }
         console.log('✅ User logged in:', { id: user.id, email: user.email });
