@@ -25,11 +25,11 @@
             const password = document.getElementById('admin-password').value;
             const errorEl = document.getElementById('error-message');
             errorEl.textContent = '';
-
-            // This points to your LIVE backend
             const backendUrl = 'https://interns-in-mrcw.onrender.com';
 
             try {
+                // ▼▼▼ THIS IS THE FINAL FIX ▼▼▼
+                // The URL now correctly points to the /api/admin/login route
                 const response = await fetch(`${backendUrl}/api/admin/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -37,9 +37,7 @@
                 });
 
                 if (response.ok) {
-                    // ▼▼▼ THIS IS THE FIX ▼▼▼
                     // Redirect to the backend's protected /admin route.
-                    // The server will then serve the admin page.
                     window.location.href = `${backendUrl}/admin`;
                 } else {
                     const result = await response.json();
