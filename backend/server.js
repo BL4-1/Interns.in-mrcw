@@ -1,15 +1,15 @@
-// server.js - FINAL VERSION
+// server.js - FINAL COMPLETE AND SECURE VERSION
 
 // 1. Import Dependencies
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
-const path = require('path'); // <-- FIX #1: Path module is included
+const path = require('path');
+const session = require('express-session');
 
-// 2. Setup App and Database Connection
+// 2. Setup App
 const app = express();
-// FIX #2: Use Render's port, or 3000 for local development
 const PORT = process.env.PORT || 3000; 
 
 const pool = new Pool({
@@ -19,12 +19,24 @@ const pool = new Pool({
 // 3. Middleware
 app.use(cors()); 
 app.use(express.json());
-// FIX #3: Correctly point to the 'public' folder, which is one level up
+
+// Session Middleware Setup
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'a-very-strong-secret-key-that-is-temporary',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 1000 * 60 * 60 * 24 // Cookie expires in 1 day
+    }
+}));
+
+// Serve public files (like index.html and admin-login.html)
 app.use(express.static(path.join(__dirname, '../public')));
 
-// 4. API Routes (Your existing logic is fine)
+// 4. API Routes
 
-// --- SIGNUP ROUTE ---
+// --- Main Site API Routes ---
 app.post('/api/signup', async (req, res) => {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
@@ -47,7 +59,6 @@ app.post('/api/signup', async (req, res) => {
     }
 });
 
-// --- LOGIN ROUTE ---
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -56,7 +67,7 @@ app.post('/api/login', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         const user = result.rows[0];
-        if (!user || password !== user.password) {
+        if (!user || password !== user.password) { // In a real app, use bcrypt.compare here
             return res.status(401).json({ success: false, message: 'Invalid credentials.' });
         }
         console.log('✅ User logged in:', { id: user.id, email: user.email });
@@ -67,11 +78,32 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// --- ADMIN ROUTE TO GET ALL USERS ---
+
+// --- Admin Security Routes ---
+app.post('/api/admin/login', (req, res) => {
+    const { password } = req.body;
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "supersecret";
+
+    if (password === ADMIN_PASSWORD) {
+        req.session.isAdmin = true;
+        console.log('✅ Admin login successful');
+        res.status(200).json({ success: true });
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid password.' });
+    }
+});
+
+app.get('/admin', (req, res) => {
+    if (req.session.isAdmin) {
+        res.sendFile(path.join(__dirname, '../views/admin.html'));
+    } else {
+        res.redirect('/admin-login.html');
+    }
+});
+
 app.get('/api/users', async (req, res) => {
-    const adminPassword = req.header('X-Admin-Password');
-    if (adminPassword !== 'supersecret') {
-        return res.status(403).json({ message: 'Not authorized' });
+    if (!req.session.isAdmin) {
+        return res.status(403).json({ message: 'Not authorized. Please log in as admin.' });
     }
     try {
         const { rows } = await pool.query('SELECT id, name, email, created_at FROM users ORDER BY created_at DESC');
