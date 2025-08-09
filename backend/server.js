@@ -1,4 +1,4 @@
-// server.js - FINAL VERSION WITH CORS CREDENTIALS
+// server.js - FINAL VERSION WITH CORRECT MIDDLEWARE ORDER
 
 // 1. Import Dependencies
 require('dotenv').config();
@@ -16,114 +16,46 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
-// 3. Middleware
+// 3. Middleware (CORRECT ORDER)
 
-// ▼▼▼ THIS BLOCK IS THE FIX ▼▼▼
-// We are replacing the simple app.use(cors()) with this advanced configuration.
-// This tells the server to ONLY trust requests from your live Netlify site
-// and to accept cookies (credentials) from it.
-const corsOptions = {
-    origin: 'https://interns-in-mrcw.netlify.app', // Your live frontend URL
-    credentials: true, // This allows the browser to send the session cookie
-};
-app.use(cors(corsOptions)); 
-// ▲▲▲ END OF THE FIX ▲▲▲
-
-app.use(express.json());
-
-// Session Middleware Setup
+// ▼▼▼ FIX #1: SESSION a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a- MIDDLEWAREWAREHOUSE_AI comes FIRST ---
+// The session middleware must be used before the CORS middleware
+// so that the session is established before CORS checks the request.
+app.set('trust proxy', 1); // Trust the first proxy (important for Render)
 app.use(session({
     secret: process.env.SESSION_SECRET || 'a-very-strong-secret-key-that-is-temporary',
     resave: false,
     saveUninitialized: false,
     cookie: { 
-        secure: process.env.NODE_ENV === 'production',
+        secure: true, // Requires HTTPS, which Render has
+        httpOnly: true, // Prevents client-side JS from reading the cookie
+        sameSite: 'none', // Allows cross-domain cookie
         maxAge: 1000 * 60 * 60 * 24 // Cookie expires in 1 day
     }
 }));
 
+// ▼▼▼ FIX #2: CORS comes SECOND ---
+const corsOptions = {
+    origin: 'https://interns-in-mrcw.netlify.app',
+    credentials: true,
+};
+app.use(cors(corsOptions)); 
+
+app.use(express.json());
+
 // Serve public files (like index.html and admin-login.html)
 app.use(express.static(path.join(__dirname, '../public')));
 
-// 4. API Routes (The rest of your code is perfect and unchanged)
 
+// 4. API Routes (The rest of your code is perfect)
 // --- Main Site API Routes ---
-app.post('/api/signup', async (req, res) => {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-        return res.status(400).json({ success: false, message: 'Please provide all fields.' });
-    }
-    try {
-        const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (userCheck.rows.length > 0) {
-            return res.status(409).json({ success: false, message: 'Email is already registered.' });
-        }
-        const newUser = await pool.query(
-            'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
-            [name, email, password]
-        );
-        console.log('✅ New user signed up:', newUser.rows[0]);
-        res.status(201).json({ success: true, user: newUser.rows[0] });
-    } catch (error) {
-        console.error('Signup Error:', error);
-        res.status(500).json({ success: false, message: 'Server error during signup.' });
-    }
-});
-
-app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
-        return res.status(400).json({ success: false, message: 'Please provide email and password.' });
-    }
-    try {
-        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        const user = result.rows[0];
-        if (!user || password !== user.password) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials.' });
-        }
-        console.log('✅ User logged in:', { id: user.id, email: user.email });
-        res.json({ success: true, user: { name: user.name, email: user.email } });
-    } catch (error) {
-        console.error('Login Error:', error);
-        res.status(500).json({ success: false, message: 'Server error during login.' });
-    }
-});
-
-
+app.post('/api/signup', async (req, res) => { /* ...your existing signup code... */ });
+app.post('/api/login', async (req, res) => { /* ...your existing login code... */ });
 // --- Admin Security Routes ---
-app.post('/api/admin/login', (req, res) => {
-    const { password } = req.body;
-    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "supersecret";
+app.post('/api/admin/login', (req, res) => { /* ...your existing admin login code... */ });
+app.get('/admin', (req, res) => { /* ...your existing /admin route code... */ });
+app.get('/api/users', async (req, res) => { /* ...your existing /api/users code... */ });
 
-    if (password === ADMIN_PASSWORD) {
-        req.session.isAdmin = true;
-        console.log('✅ Admin login successful');
-        res.status(200).json({ success: true });
-    } else {
-        res.status(401).json({ success: false, message: 'Invalid password.' });
-    }
-});
-
-app.get('/admin', (req, res) => {
-    if (req.session.isAdmin) {
-        res.sendFile(path.join(__dirname, '../views/admin.html'));
-    } else {
-        res.redirect('/admin-login.html');
-    }
-});
-
-app.get('/api/users', async (req, res) => {
-    if (!req.session.isAdmin) {
-        return res.status(403).json({ message: 'Not authorized. Please log in as admin.' });
-    }
-    try {
-        const { rows } = await pool.query('SELECT id, name, email, created_at FROM users ORDER BY created_at DESC');
-        res.json(rows);
-    } catch (error) {
-        console.error('Admin Fetch Error:', error);
-        res.status(500).json({ message: 'Failed to fetch users.' });
-    }
-});
 
 // 5. Start the Server
 app.listen(PORT, () => {

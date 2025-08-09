@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style> body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; } </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-sm p-8 bg-white rounded-lg shadow-md">
+        <h1 class="text-3xl font-bold mb-4 text-center text-gray-800">Admin Access</h1>
+        <form id="admin-login-form">
+            <div class="mb-5">
+                <label for="admin-password" class="block text-gray-700 font-medium mb-2">Password</label>
+                <input type="password" id="admin-password" class="w-full bg-gray-100 text-gray-800 border-2 border-transparent rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500" required>
+            </div>
+            <button type="submit" class="w-full font-bold py-3 px-4 rounded-lg text-white transition-colors bg-blue-600 hover:bg-blue-700">Login</button>
+        </form>
+        <p id="error-message" class="text-red-500 text-sm mt-3 text-center"></p>
+    </div>
+
+    <script>
+        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('admin-password').value;
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = '';
+
+            // This points to your LIVE backend
+            const backendUrl = 'https://interns-in-mrcw.onrender.com';
+
+            try {
+                const response = await fetch(`${backendUrl}/api/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (response.ok) {
+                    // ▼▼▼ THIS IS THE FIX ▼▼▼
+                    // Redirect to the backend's protected /admin route.
+                    // The server will then serve the admin page.
+                    window.location.href = `${backendUrl}/admin`;
+                } else {
+                    const result = await response.json();
+                    errorEl.textContent = result.message || 'Login failed.';
+                }
+            } catch (err) {
+                errorEl.textContent = 'Could not connect to server.';
+            }
+        });
+    </script>
+</body>
+</html>
